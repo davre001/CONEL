@@ -75,4 +75,8 @@ jobs:
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
           docker tag conel-demo-store:build "$image"
           docker push "$image"
+          alias="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/conel-demo-store:${GITHUB_SHA}"
+          docker tag conel-demo-store:build "$alias"
+          docker push "$alias"
+          printf 'Flat registry alias for deployment compatibility: `%s`\n' "$alias" >> "$GITHUB_STEP_SUMMARY"
           printf 'Demo Store image: `%s`\nExpected committed state: `%s`\n\nContainer HTTP checks matched the selected state without payment credentials. Hosting and public recovery remain pending.\n' "$image" "$EXPECTED_STATE" >> "$GITHUB_STEP_SUMMARY"
