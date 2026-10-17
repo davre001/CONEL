@@ -66,3 +66,9 @@ The private `var/verification/demo-createos-deployment.json` receipt now records
 The live storefront is registered under the authenticated CONEL account as project `ab4e965b7c4244cba42ae0a0d928695f`, repository `davre001/CONEL`, branch `main`, root directory `apps/demo-store`, health endpoint `/api/health`, in `monitor_only` mode. Registration returned 201 and a healthy HTTP 200 observation. Passive API reads subsequently confirmed two additional scheduled healthy observations approximately 33 seconds apart. No manual health-run endpoint was invoked for that verification.
 
 Monitor-only mode records incidents without automatically queuing model or sandbox work. Controlled source failure, actual incident capture, a cost-approved model/sandbox repair, PR review and recovery remain pending. Monitor credentials and redacted observation receipts remain private under ignored `var/verification`.
+
+## Repair capacity gate
+
+The operator approved the bounded controlled recovery test (up to three temporary sandbox attempts), but execution stopped before deploying the source defect. The active Free plan's documented single-sandbox allowance is occupied by retained, paused `conel-dev`; the main worker's default 2-vCPU/4-GB shape also exceeds its documented 1-vCPU/1-GB maximum. No model call, new image build or sandbox creation was attempted for this run. The storefront remains healthy.
+
+Capacity must be increased with a reviewed price while preserving `conel-dev`. The live Stripe catalog exposed only Free, so no paid upgrade was selected. See the private `var/verification/demo-repair-capacity-preflight.json` receipt and [CreateOS limits](https://createos.sh/docs/Sandbox/Limits/).
