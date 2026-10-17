@@ -1,0 +1,40 @@
+name: Build CONEL worker image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [conel-worker-deploy]
+    paths:
+      - backend/**.py
+      - requirements.txt
+      - Dockerfile.worker
+      - .dockerignore
+      - .github/workflows/worker-image.yml
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: conel-worker-image
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build backend image and check worker entrypoint
+        run: |
+          docker build --file Dockerfile.worker --tag conel-worker:build .
+          docker run --rm --entrypoint python conel-worker:build -c "from backend.worker import main; assert callable(main)"
+      - name: Publish immutable image to GitHub Container Registry
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/worker:${GITHUB_SHA}"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker tag conel-worker:build "$image"
+          docker push "$image"
+          printf 'Worker image: `%s`\n\nRun with `python -m backend.worker` on an always-on container host. No worker was started by this workflow.\n' "$image" >> "$GITHUB_STEP_SUMMARY"

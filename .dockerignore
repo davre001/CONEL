@@ -1,0 +1,12 @@
+**
+!requirements.txt
+!Dockerfile.worker
+!backend/
+!backend/**
+backend/**/__pycache__/
+backend/**/*.pyc
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/.projects/
