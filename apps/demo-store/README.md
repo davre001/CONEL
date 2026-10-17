@@ -60,3 +60,9 @@ var/tools/createos.exe deploy --project ac1ca584-bef6-4b83-a68f-a51b2eaa1153 --d
 Promote the returned deployment ID to environment `ae32d6e7-8c4a-4ffa-8765-fe16eb53a7ae`, then repeat public health checks. Future image releases require updating the wrapper digest to the newly verified image. This is an upload deployment, so source commit metadata is tracked by the pinned image/workflow receipt rather than CreateOS's empty VCS source fields. CreateOS's OCI build warned that the image HEALTHCHECK is ignored; public HTTP checks remain required.
 
 The private `var/verification/demo-createos-deployment.json` receipt now records the successful checks. The prior 503 observations above are historical. Monitoring registration, a controlled incident, model/sandbox repair and payment verification remain separate pending milestones.
+
+## Monitoring connected
+
+The live storefront is registered under the authenticated CONEL account as project `ab4e965b7c4244cba42ae0a0d928695f`, repository `davre001/CONEL`, branch `main`, root directory `apps/demo-store`, health endpoint `/api/health`, in `monitor_only` mode. Registration returned 201 and a healthy HTTP 200 observation. Passive API reads subsequently confirmed two additional scheduled healthy observations approximately 33 seconds apart. No manual health-run endpoint was invoked for that verification.
+
+Monitor-only mode records incidents without automatically queuing model or sandbox work. Controlled source failure, actual incident capture, a cost-approved model/sandbox repair, PR review and recovery remain pending. Monitor credentials and redacted observation receipts remain private under ignored `var/verification`.
