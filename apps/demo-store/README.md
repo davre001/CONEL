@@ -34,3 +34,13 @@ Local checkout regressions, TypeScript and seeded-failure/manual-reset HTTP fixt
 Published image: `ghcr.io/davre001/conel/demo-store:c9687537f42ddb1e0f3c3c34dbcdd193584b6ba5`.
 
 Registry digest: `sha256:8fc326bb877e071a7e09311d4ba4947ea278293521107089fdec1d981627961c`. Prefer the digest when deploying. A private publication receipt and sanitized job log are retained under `var/verification`. The deliberately failing revision workflow path remains unexecuted. No hosted Demo Store, public incident, Stripe payment or recovery is claimed.
+
+## CreateOS deployment attempt
+
+The dedicated Stripe Projects resource `conel-demo-store` uses the existing CreateOS Free plan. CreateOS rejected the publicly pullable GHCR reference as `invalid image`, both in digest and commit-tag forms. A flat-name alias was also published and passed the Linux build/HTTP workflow, but CreateOS rejected it too. This does not establish the cause of the registry validation failure.
+
+The empty image-mode project was marked for deletion. Its replacement, `conel-demo-store-live` (`ac1ca584-bef6-4b83-a68f-a51b2eaa1153`), uses the Dockerfile upload runtime. The uploaded directory contains only a Dockerfile whose FROM line pins `ghcr.io/davre001/conel-demo-store@sha256:89e01ecc41ef88c1b114726abcf6db3e2f5b9dd1044d7dbf97e7337d1be2ea58`. This artifact comes from [workflow 39075399413](https://github.com/davre001/CONEL/actions/runs/39075399413), commit `9141ec77157b1e4363d48576980cb96af5923100`.
+
+Production environment: `ae32d6e7-8c4a-4ffa-8765-fe16eb53a7ae`; one replica, 250 millicores CPU, 512 MB RAM. `PORT=3001`, `HOSTNAME=0.0.0.0` and `NODE_ENV=production` are explicit runtime variables. No Stripe payment or CONEL monitor credential was uploaded. The stable route is `https://production-conel-demo-store-live.tyzo.nodeops.app`.
+
+The initial upload was reported deployed and promoted, but public health returned an nginx 503 and deployment-URL requests timed out. Runtime logs remained empty. The controlled retrigger also reached provider status `deployed` and was promoted: deployment `1a70a6e3-bf29-46c7-b741-479d00eb2045`. Final curl checks still returned nginx 503 on Production and a timeout on the deployment URL. Python's default client separately received Cloudflare error 1010. Runtime logs remained empty. The service remains configured at one replica; no healthy public application is claimed. Private evidence: `var/verification/demo-createos-deployment.json`. Provider runtime/routing investigation, monitoring registration and failure/recovery demonstrations remain pending.
