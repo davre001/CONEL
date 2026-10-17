@@ -1,0 +1,78 @@
+name: Build CONEL Demo Store image
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_state:
+        description: Expected behavior of the committed source (no build-time injection)
+        type: choice
+        options: [healthy, failing]
+        default: healthy
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: conel-demo-store-image
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify the committed regression baseline
+        shell: bash
+        env:
+          EXPECTED_STATE: ${{ inputs.expected_state }}
+        run: |
+          set -euo pipefail
+          docker build --target build --tag conel-demo-store:build-tools apps/demo-store
+          result=0
+          docker run --rm --entrypoint npm conel-demo-store:build-tools test || result=$?
+          expected=0
+          if [ "$EXPECTED_STATE" = failing ]; then expected=1; fi
+          test "$result" = "$expected"
+      - name: Build production image and verify HTTP boundaries
+        shell: bash
+        env:
+          EXPECTED_STATE: ${{ inputs.expected_state }}
+        run: |
+          set -euo pipefail
+          docker build --tag conel-demo-store:build apps/demo-store
+          docker run --detach --name conel-demo-store --publish 127.0.0.1:3001:3001 conel-demo-store:build
+          trap 'docker rm --force conel-demo-store >/dev/null 2>&1 || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3001/ > /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = 1
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3001/)" = 200
+          health=200
+          checkout=503
+          if [ "$EXPECTED_STATE" = failing ]; then health=500; checkout=500; fi
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3001/api/health)" = "$health"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --head http://127.0.0.1:3001/api/health)" = "$health"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST http://127.0.0.1:3001/api/checkout)" = "$checkout"
+          for action in break reset; do
+            test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST http://127.0.0.1:3001/api/demo/$action)" = 403
+          done
+      - name: Publish commit-tagged image
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPECTED_STATE: ${{ inputs.expected_state }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/demo-store:${GITHUB_SHA}"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker tag conel-demo-store:build "$image"
+          docker push "$image"
+          printf 'Demo Store image: `%s`\nExpected committed state: `%s`\n\nContainer HTTP checks matched the selected state without payment credentials. Hosting and public recovery remain pending.\n' "$image" "$EXPECTED_STATE" >> "$GITHUB_STEP_SUMMARY"
