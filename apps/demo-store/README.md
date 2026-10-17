@@ -29,4 +29,8 @@ Begin project registration with `repair_mode=monitor_only` until model/sandbox c
 
 ## Verification status
 
-Local checkout regressions, TypeScript and seeded-failure/manual-reset HTTP fixtures passed during this continuation. Workflow YAML parsed successfully. Docker is unavailable locally and free memory was approximately 0.5 GiB, so the new production build, container HTTP checks and registry publication have not run. No hosted Demo Store, public incident or recovery is claimed.
+Local checkout regressions, TypeScript and seeded-failure/manual-reset HTTP fixtures passed. The approved [Linux image workflow](https://github.com/davre001/CONEL/actions/runs/39074869273) then passed the production build, TypeScript, regressions and container HTTP checks against healthy committed revision `c9687537f42ddb1e0f3c3c34dbcdd193584b6ba5`. Health GET/HEAD returned 200, checkout without credentials returned 503, and production failure/reset controls returned 403.
+
+Published image: `ghcr.io/davre001/conel/demo-store:c9687537f42ddb1e0f3c3c34dbcdd193584b6ba5`.
+
+Registry digest: `sha256:8fc326bb877e071a7e09311d4ba4947ea278293521107089fdec1d981627961c`. Prefer the digest when deploying. A private publication receipt and sanitized job log are retained under `var/verification`. The deliberately failing revision workflow path remains unexecuted. No hosted Demo Store, public incident, Stripe payment or recovery is claimed.
