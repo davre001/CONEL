@@ -33,7 +33,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          image="ghcr.io/${GITHUB_REPOSITORY,,}/worker:${GITHUB_SHA}"
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/conel-worker:${GITHUB_SHA}"
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
           docker tag conel-worker:build "$image"
           docker push "$image"
