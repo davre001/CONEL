@@ -44,3 +44,19 @@ The empty image-mode project was marked for deletion. Its replacement, `conel-de
 Production environment: `ae32d6e7-8c4a-4ffa-8765-fe16eb53a7ae`; one replica, 250 millicores CPU, 512 MB RAM. `PORT=3001`, `HOSTNAME=0.0.0.0` and `NODE_ENV=production` are explicit runtime variables. No Stripe payment or CONEL monitor credential was uploaded. The stable route is `https://production-conel-demo-store-live.tyzo.nodeops.app`.
 
 The initial upload was reported deployed and promoted, but public health returned an nginx 503 and deployment-URL requests timed out. Runtime logs remained empty. The controlled retrigger also reached provider status `deployed` and was promoted: deployment `1a70a6e3-bf29-46c7-b741-479d00eb2045`. Final curl checks still returned nginx 503 on Production and a timeout on the deployment URL. Python's default client separately received Cloudflare error 1010. Runtime logs remained empty. The service remains configured at one replica; no healthy public application is claimed. Private evidence: `var/verification/demo-createos-deployment.json`. Provider runtime/routing investigation, monitoring registration and failure/recovery demonstrations remain pending.
+
+## Public deployment verified
+
+The stable storefront is now live at [production-conel-demo-store-live.tyzo.nodeops.app](https://production-conel-demo-store-live.tyzo.nodeops.app). Deployment `7fe0a990-ad3f-4299-80ec-d1fb07522cac` passed all six public HTTP checks: storefront and health GET/HEAD returned 200; checkout without a Stripe test key returned its expected application 503; production failure/reset controls returned 403. The storefront content and JSON health response identify CONEL Demo Store.
+
+The successful upload wrapper now states WORKDIR, runtime environment, EXPOSE and CMD explicitly. The [checked-in wrapper](createos/Dockerfile) matches the deployed artifact. The API already reported port 3001 and Dockerfile mode before this change; the earlier attempts' exact runtime failure was not exposed in logs. The successful deployment followed this metadata change, but that does not establish which individual instruction resolved the provider behavior.
+
+To deploy the same pinned release through the existing project:
+
+```powershell
+var/tools/createos.exe deploy --project ac1ca584-bef6-4b83-a68f-a51b2eaa1153 --dir apps/demo-store/createos
+```
+
+Promote the returned deployment ID to environment `ae32d6e7-8c4a-4ffa-8765-fe16eb53a7ae`, then repeat public health checks. Future image releases require updating the wrapper digest to the newly verified image. This is an upload deployment, so source commit metadata is tracked by the pinned image/workflow receipt rather than CreateOS's empty VCS source fields. CreateOS's OCI build warned that the image HEALTHCHECK is ignored; public HTTP checks remain required.
+
+The private `var/verification/demo-createos-deployment.json` receipt now records the successful checks. The prior 503 observations above are historical. Monitoring registration, a controlled incident, model/sandbox repair and payment verification remain separate pending milestones.
